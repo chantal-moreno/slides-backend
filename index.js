@@ -15,7 +15,7 @@ app.use(express.json());
 app.get('/', function (req, res) {
   res.send('Hello');
 });
-
+// Enter user nickname
 app.post('/login', async function (req, res) {
   try {
     let user = await User.findOne(req.body);
@@ -28,17 +28,18 @@ app.post('/login', async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 });
+// Create presentation
 app.post('/crtPresentation', async function (req, res) {
   const { title, ownerId } = req.body;
   try {
     const user = await User.findById(ownerId);
     if (!user) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+      return res.status(404).json({ error: 'User not found' });
     }
     const newPresentation = new Presentation({
       title,
       owner: ownerId,
-      slides: [{ content: 'Contenido de la primera diapositiva' }],
+      slides: [{ content: 'First slide content' }],
     });
     await newPresentation.save();
     user.presentations.push(newPresentation._id);
@@ -46,5 +47,14 @@ app.post('/crtPresentation', async function (req, res) {
     res.status(200).json(newPresentation);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+// Get user presentations
+app.get('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('presentations');
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Error to get the user' });
   }
 });
