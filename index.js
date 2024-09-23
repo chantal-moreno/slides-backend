@@ -77,3 +77,15 @@ app.get('/users/:id', async (req, res) => {
     res.status(500).json({ error: 'Error to get the user' });
   }
 });
+
+// Get all the presentations except user presentations
+app.get('/presentations/exclude/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const presentations = await Presentation.find({ owner: { $ne: userId } });
+
+    res.status(200).json(presentations);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener las presentaciones' });
+  }
+});
