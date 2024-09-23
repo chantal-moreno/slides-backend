@@ -86,6 +86,20 @@ app.get('/presentations/exclude/:userId', async (req, res) => {
 
     res.status(200).json(presentations);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las presentaciones' });
+    res.status(500).json({ error: 'Error to get presentations' });
+  }
+});
+
+// Get all the slides of a presentation
+app.get('/presentations/:id/slides', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const presentation = await Presentation.findById(id);
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    res.status(200).json(presentation.slides);
+  } catch (error) {
+    res.status(500).json({ error: 'Error to get slides' });
   }
 });
