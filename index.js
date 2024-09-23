@@ -29,7 +29,7 @@ app.post('/login', async function (req, res) {
   }
 });
 // Create presentation
-app.post('/crtPresentation', async function (req, res) {
+app.post('/presentation', async function (req, res) {
   const { title, ownerId } = req.body;
   try {
     const user = await User.findById(ownerId);
@@ -49,6 +49,25 @@ app.post('/crtPresentation', async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 });
+// Delete presentation
+app.delete('/presentations/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const presentation = await Presentation.findById(id);
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    await Presentation.findByIdAndDelete(id);
+    // Delete presentation from user presentations array
+    await User.findByIdAndUpdate(presentation.owner, {
+      $pull: { presentations: id },
+    });
+    res.status(200).json({ message: 'Presentation deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting the presentation' });
+  }
+});
+
 // Get user presentations
 app.get('/users/:id', async (req, res) => {
   try {
