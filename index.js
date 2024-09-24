@@ -103,3 +103,30 @@ app.get('/presentations/:id/slides', async (req, res) => {
     res.status(500).json({ error: 'Error to get slides' });
   }
 });
+
+// Add slide to presentation (only presentation owner)
+app.post('/presentations/:id/slides', async (req, res) => {
+  const { id } = req.params;
+  const { content, userId } = req.body;
+
+  try {
+    const presentation = await Presentation.findById(id);
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+
+    if (presentation.owner.toString() !== userId) {
+      return res.status(403).json({
+        error: 'Error NOT permission to add a slide',
+      });
+    }
+
+    presentation.slides.push({ content });
+    presentation.lastModified = Date.now();
+    await presentation.save();
+
+    res.status(200).json({ message: 'Slide add succesfully', presentation });
+  } catch (error) {
+    res.status(500).json({ error: 'Error to add slide' });
+  }
+});
