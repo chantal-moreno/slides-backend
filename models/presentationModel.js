@@ -19,15 +19,11 @@ const PresentationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    permissions: [
+    editors: [
       {
-        nickname: {
+        editorId: {
           type: String,
           required: true,
-        },
-        canEdit: {
-          type: Boolean,
-          default: false,
         },
       },
     ],

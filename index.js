@@ -49,6 +49,24 @@ app.post('/presentation', async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 });
+// Get presentation
+app.get('/presentations/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const presentation = await Presentation.findById(id).populate(
+      'owner',
+      'nickname'
+    );
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    res.status(200).json(presentation);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener la presentación' });
+  }
+});
+
 // Delete presentation
 app.delete('/presentations/:id', async (req, res) => {
   const { id } = req.params;
