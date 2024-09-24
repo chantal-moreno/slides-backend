@@ -130,3 +130,41 @@ app.post('/presentations/:id/slides', async (req, res) => {
     res.status(500).json({ error: 'Error to add slide' });
   }
 });
+
+// Delete slide (only presentation owner)
+app.delete(
+  '/presentations/:presentationId/slides/:slideId',
+  async (req, res) => {
+    const { presentationId, slideId } = req.params;
+    const { userId } = req.body;
+
+    try {
+      const presentation = await Presentation.findById(presentationId);
+      if (!presentation) {
+        return res.status(404).json({ error: 'Presentation not found' });
+      }
+      if (presentation.owner.toString() !== userId) {
+        return res.status(403).json({
+          error: 'Error NOT permission to delete slide',
+        });
+      }
+
+      const slideIndex = presentation.slides.findIndex(
+        (slide) => slide._id.toString() === slideId
+      );
+      if (slideIndex === -1) {
+        return res.status(404).json({ error: 'Slide not found' });
+      }
+
+      presentation.slides.splice(slideIndex, 1);
+      presentation.lastModified = Date.now();
+      await presentation.save();
+
+      res
+        .status(200)
+        .json({ message: 'Slide deleted successfully', presentation });
+    } catch (error) {
+      res.status(500).json({ error: 'Error to delete slide' });
+    }
+  }
+);
