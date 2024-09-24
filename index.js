@@ -10,6 +10,23 @@ app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
 
+// CORS (Cross-Origin Resource Sharing)
+app.use((request, response, next) => {
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization'
+  );
+  response.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+  );
+  if (request.method === 'OPTIONS') {
+    return response.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 
 app.get('/', function (req, res) {
@@ -17,10 +34,14 @@ app.get('/', function (req, res) {
 });
 // Enter user nickname
 app.post('/login', async function (req, res) {
+  const { nickname } = req.body;
+  if (!nickname) {
+    return res.status(400).json({ message: 'Nickname is required' });
+  }
   try {
-    let user = await User.findOne(req.body);
+    let user = await User.findOne({ nickname: nickname });
     if (!user) {
-      user = new User(req.body);
+      user = new User({ nickname: nickname });
       await user.save();
     }
     res.status(200).json(user);
