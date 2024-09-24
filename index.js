@@ -190,7 +190,7 @@ app.delete(
 // Add new editor (only the owner can add new editors)
 app.post('/presentations/:id/add-editor', async (req, res) => {
   const { id } = req.params;
-  const { userId, newEditorId } = req.body; // userId: the user/owner that wants to add an editor
+  const { ownerId, newEditorId } = req.body;
 
   try {
     const presentation = await Presentation.findById(id);
@@ -198,10 +198,8 @@ app.post('/presentations/:id/add-editor', async (req, res) => {
       return res.status(404).json({ error: 'Presentation not found' });
     }
 
-    if (presentation.owner !== userId) {
-      return res
-        .status(403)
-        .json({ error: 'You do not have permission to add editors' });
+    if (presentation.owner !== ownerId) {
+      return res.status(403).json({ error: 'Only the owner can add editors' });
     }
 
     const alreadyEditor = presentation.editors.some(
@@ -220,5 +218,39 @@ app.post('/presentations/:id/add-editor', async (req, res) => {
       .json({ message: 'Editor added successfully', presentation });
   } catch (error) {
     res.status(500).json({ error: 'Error to add editor' });
+  }
+});
+
+// Delete editor (only owner)
+app.delete('/presentations/:id/remove-editor', async (req, res) => {
+  const { id } = req.params;
+  const { ownerId, editorId } = req.body;
+  try {
+    const presentation = await Presentation.findById(id);
+    if (!presentation) {
+      return res.status(404).json({ error: 'Presentation not found' });
+    }
+    if (presentation.owner !== ownerId) {
+      return res
+        .status(403)
+        .json({ error: 'Only the owner can delete editors' });
+    }
+    const editorIndex = presentation.editors.findIndex(
+      (editor) => editor.editorId === editorId
+    );
+
+    if (editorIndex === -1) {
+      return res.status(404).json({ error: 'This user is no an editor' });
+    }
+
+    presentation.editors.splice(editorIndex, 1);
+
+    await presentation.save();
+
+    res
+      .status(200)
+      .json({ message: 'Editor deleted successfully', presentation });
+  } catch (error) {
+    res.status(500).json({ error: 'Error to delete editor' });
   }
 });
